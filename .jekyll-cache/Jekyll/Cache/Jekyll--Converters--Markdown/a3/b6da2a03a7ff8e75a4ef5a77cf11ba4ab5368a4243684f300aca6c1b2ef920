@@ -1,0 +1,302 @@
+I"�l<h2 id="formula-1-data">Formula 1 data</h2>
+
+<p>In the modern era of the sport each car can have
+between 150 and 300 sensors, generating an approximate of 300gb of data
+per car per grand prix weekend. This is of great use for the engineers
+who can make data-driven decisions in order to extract the maximum
+performance out of the car on each event; however, this wasn’t always
+the case. In the early days of the sport it was technologically
+impossible to generate or store these amounts of data.<br />
+Most of this information is publicly available in tidy format in some websites, APIs
+and python packages, such as, the <code class="language-plaintext highlighter-rouge">fastf1</code> python library. Early formula
+1 data is also available on the FIA’s website, but mostly in the form of html
+tables. Therefore, if we want to analyze this data we will have to scrape it.</p>
+
+<h2 id="webscrapping-code">Webscrapping code</h2>
+
+<p>We will import the <a href="https://www.tidyverse.org/"><code class="language-plaintext highlighter-rouge">tidyverse</code></a> library,
+which is a collection of packages very useful for data wrangling. The
+main package we’ll use for webscrapping is the <code class="language-plaintext highlighter-rouge">rvest</code> package, we will
+also need the <code class="language-plaintext highlighter-rouge">stringr</code> package, which allows us to manipulate more
+easily string-type variables.</p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">library</span><span class="p">(</span><span class="n">tidyverse</span><span class="p">)</span><span class="w">
+</span><span class="n">library</span><span class="p">(</span><span class="n">rvest</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<p>We will store our main site links from where the scrapping will start.</p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">link_fia</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="s2">"https://fiaresultsandstatistics.motorsportstats.com"</span><span class="w">
+</span><span class="n">link_seasons</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="s2">"https://fiaresultsandstatistics.motorsportstats.com/series/formula-one/season/"</span><span class="w">
+</span></code></pre></div></div>
+
+<p>If we add a specif year to the <code class="language-plaintext highlighter-rouge">link_seasons</code> string, it will take us to
+the main page of that F1 season. The <code class="language-plaintext highlighter-rouge">read_html</code>, extracts all html code
+from the site, from there we can retrieve specific nodes. Let’s go to
+the link of the first Formula 1 grand prix ever.</p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">link_british_1950</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="s2">"https://fiaresultsandstatistics.motorsportstats.com/results/1950-british-grand-prix/classification"</span><span class="w">
+</span><span class="n">british_1950_page</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">read_html</span><span class="p">(</span><span class="n">link_british_1950</span><span class="p">)</span><span class="w">
+</span><span class="n">british_1950_race</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">british_1950_page</span><span class="w"> </span><span class="o">|&gt;</span><span class="w"> 
+  </span><span class="n">html_table</span><span class="p">()</span><span class="w">
+
+</span><span class="n">british_1950_race</span><span class="w">
+</span></code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## [[1]]
+## # A tibble: 21 × 12
+##    Pos      No Driver   Nat   Team   Laps Time  Gap   Interval   Kph Best    Lap
+##    &lt;chr&gt; &lt;int&gt; &lt;chr&gt;    &lt;chr&gt; &lt;chr&gt; &lt;int&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt;    &lt;dbl&gt; &lt;chr&gt; &lt;int&gt;
+##  1 1         2 Nino Fa… Italy Alfa…    70 2:13… ""    ""        146. "1:5…     2
+##  2 2         3 Luigi F… Italy Alfa…    70 2:13… "+ 2… "+ 2.60…  146. ""       NA
+##  3 3         4 Reg Par… Grea… Alfa…    70 2:14… "+ 5… "+ 49.4…  145. ""       NA
+##  4 4        14 Yves Gi… Fran… Auto…    68 2:13… "2 L… "2 Laps"  142. "1:5…    41
+##  5 5        15 Louis R… Fran… Auto…    68 2:14… "2 L… "+ 1:03…  141. "1:5…    10
+##  6 6        12 Bob Ger… Grea… Bob …    67 2:13… "3 L… "1 Lap"   140. ""       NA
+##  7 7        11 Cuth Ha… Grea… Cuth…    67 2:13… "3 L… "+ 0.40…  140. ""       NA
+##  8 8        16 Philipp… Fran… Auto…    65 2:14… "5 L… "2 Laps"  135. "1:5…    31
+##  9 9         6 David H… Grea… Scud…    64 2:14… "6 L… "1 Lap"   133. ""       NA
+## 10 10       10 Joe Fry… Grea… Joe …    64 2:15… "6 L… "+ 56.8…  132. ""       NA
+## # ℹ 11 more rows
+</code></pre></div></div>
+
+<p>Here the <code class="language-plaintext highlighter-rouge">html_table</code> function retrieves a list of tibbles of all html
+tables on the page, fortunately, in this case there was only table. The
+tibble consists of the position a certain driver finished, the laps ran,
+the total race time, average speed, and their fastest lap of the race
+and in which lap was completed, as well as, the drivers’ team and
+nationality. Let’s look at a screenshot of the webpage for comparison.</p>
+
+<p>[png]{/img/scrapping/britishgp_race.png}</p>
+
+<p>If we navigate to the site, we can see that there’s a menu
+right above the race positions table, which has the buttons:
+“Qualifying”, “Grid” and “Race”, these buttons have hyperlinks which
+will take you to another page. We already have the race information, but
+we are also interested in the qualifying data, we know that in html the
+hyperlinks are stored in “a” nodes, so we can use the following code to
+retrieve the link to the qualifying page.</p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">href_qual</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">british_1950_page</span><span class="w"> </span><span class="o">|&gt;</span><span class="w"> 
+  </span><span class="n">html_node</span><span class="p">(</span><span class="n">xpath</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"//a[text() = 'Qualifying']"</span><span class="p">)</span><span class="w"> </span><span class="o">|&gt;</span><span class="w"> 
+  </span><span class="n">html_attr</span><span class="p">(</span><span class="s2">"href"</span><span class="p">)</span><span class="w">
+
+</span><span class="n">british_1950_qual_link</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">paste0</span><span class="p">(</span><span class="n">link_fia</span><span class="p">,</span><span class="w"> </span><span class="n">href_qual</span><span class="p">)</span><span class="w">
+
+</span><span class="n">british_1950_qual_link</span><span class="w">
+</span></code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## [1] "https://fiaresultsandstatistics.motorsportstats.com/results/1950-british-grand-prix/classification/310d5889-6079-4841-a8df-cb6d92de54d1"
+</code></pre></div></div>
+
+<p>Here we are asking <code class="language-plaintext highlighter-rouge">R</code> to retrieve the “a” html node that contains the
+text “Qualifying”, and get the hyperlink of that node, then we paste
+that to the url for our main site. We can use the same function as with
+race data, to get a tibble of qualifying positions.</p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">british_1950_qual</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">read_html</span><span class="p">(</span><span class="n">british_1950_qual_link</span><span class="p">)</span><span class="w"> </span><span class="o">|&gt;</span><span class="w"> 
+  </span><span class="n">html_table</span><span class="p">()</span><span class="w">
+
+</span><span class="n">british_1950_qual</span><span class="w">
+</span></code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## [[1]]
+## # A tibble: 21 × 12
+##      Pos    No Driver   Nat   Team  Laps  Time  Gap   Interval   Kph Best  Lap  
+##    &lt;int&gt; &lt;int&gt; &lt;chr&gt;    &lt;chr&gt; &lt;chr&gt; &lt;lgl&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt;    &lt;dbl&gt; &lt;lgl&gt; &lt;lgl&gt;
+##  1     1     2 Nino Fa… Italy Alfa… NA    1:50… ""    ""        151. NA    NA   
+##  2     2     3 Luigi F… Italy Alfa… NA    1:51… "+ 0… "+ 0.20…  151. NA    NA   
+##  3     3     1 Juan Ma… Arge… Alfa… NA    1:51… "+ 0… ""        151. NA    NA   
+##  4     4     4 Reg Par… Grea… Alfa… NA    1:52… "+ 1… "+ 1.20…  149. NA    NA   
+##  5     5    21 Prince … Thai… Enri… NA    1:52… "+ 1… "+ 0.40…  149. NA    NA   
+##  6     6    14 Yves Gi… Fran… Auto… NA    1:53… "+ 2… "+ 0.80…  148. NA    NA   
+##  7     7    17 Eugene … Fran… Auto… NA    1:55… "+ 4… "+ 2.00…  145. NA    NA   
+##  8     8    20 Emmanue… Swit… Enri… NA    1:55… "+ 5… "+ 0.40…  145. NA    NA   
+##  9     9    15 Louis R… Fran… Auto… NA    1:56… "+ 5… "+ 0.20…  144. NA    NA   
+## 10    10     9 Peter W… Grea… Pete… NA    1:56… "+ 5… "+ 0.60…  144. NA    NA   
+## # ℹ 11 more rows
+</code></pre></div></div>
+
+<p>Above the Qualifying, Grid and Race menu there’s another menu with
+buttons: “Event Info”, “Classification”, “Session Facts” and
+“Standings”. The race and qualifying data are under the classification
+page; however, under event info. there’s information about the engine
+and car each driver was running, which might be important in other
+analysis. We can use the same trick to get the link to this page, and
+then retrieve the table.</p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">href_event</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">british_1950_page</span><span class="w"> </span><span class="o">|&gt;</span><span class="w"> 
+  </span><span class="n">html_nodes</span><span class="p">(</span><span class="n">xpath</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"//a[text() = 'Event Info']"</span><span class="p">)</span><span class="w"> </span><span class="o">|&gt;</span><span class="w"> 
+  </span><span class="n">html_attr</span><span class="p">(</span><span class="s2">"href"</span><span class="p">)</span><span class="w">
+
+</span><span class="n">british_1950_event</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">read_html</span><span class="p">(</span><span class="n">paste0</span><span class="p">(</span><span class="n">link_fia</span><span class="p">,</span><span class="w"> </span><span class="n">href_event</span><span class="p">))</span><span class="w"> </span><span class="o">|&gt;</span><span class="w"> 
+  </span><span class="n">html_table</span><span class="p">()</span><span class="w">
+
+</span><span class="n">british_1950_event</span><span class="w">
+</span></code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## [[1]]
+## # A tibble: 23 × 6
+##      `#` Driver             Nat           Team                Car         Engine
+##    &lt;int&gt; &lt;chr&gt;              &lt;chr&gt;         &lt;chr&gt;               &lt;chr&gt;       &lt;chr&gt; 
+##  1     1 Juan Manuel Fangio Argentina     Alfa Romeo SpA      Alfa Romeo… Alfa …
+##  2     2 Nino Farina        Italy         Alfa Romeo SpA      Alfa Romeo… Alfa …
+##  3     3 Luigi Fagioli      Italy         Alfa Romeo SpA      Alfa Romeo… Alfa …
+##  4     4 Reg Parnell        Great Britain Alfa Romeo SpA      Alfa Romeo… Alfa …
+##  5     5 David Murray       Great Britain Scuderia Ambrosiana Maserati 4… Maser…
+##  6     6 David Hampshire    Great Britain Scuderia Ambrosiana Maserati 4… Maser…
+##  7     8 Leslie Johnson     Great Britain T A S O Mathieson   ERA E       ERA   
+##  8     9 Peter Walker       Great Britain Peter Walker        ERA E       ERA   
+##  9     9 Tony Rolt          Great Britain Peter Walker        ERA E       ERA   
+## 10    10 Joe Fry            Great Britain Joe Fry             Maserati 4… Maser…
+## # ℹ 13 more rows
+</code></pre></div></div>
+
+<p>Under the “Session Facts” section there’s a lap by lap positions chart,
+which might be useful to retrieve. The horizontal axis of this chart are
+the race positions, while the vertical axis has the lap numbers, while
+the cell value is the driver’s number.</p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">href</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">british_1950_page</span><span class="w"> </span><span class="o">|&gt;</span><span class="w"> 
+  </span><span class="n">html_nodes</span><span class="p">(</span><span class="n">xpath</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"//a[text() = 'Session Facts']"</span><span class="p">)</span><span class="w"> </span><span class="o">|&gt;</span><span class="w"> 
+  </span><span class="n">html_attr</span><span class="p">(</span><span class="s2">"href"</span><span class="p">)</span><span class="w">
+
+</span><span class="n">href2</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">read_html</span><span class="p">(</span><span class="n">paste0</span><span class="p">(</span><span class="n">link_fia</span><span class="p">,</span><span class="w"> </span><span class="n">href</span><span class="p">))</span><span class="w"> </span><span class="o">|&gt;</span><span class="w"> 
+  </span><span class="n">html_nodes</span><span class="p">(</span><span class="n">xpath</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"//a[text() = 'Lap Chart']"</span><span class="p">)</span><span class="w"> </span><span class="o">|&gt;</span><span class="w"> 
+  </span><span class="n">html_attr</span><span class="p">(</span><span class="s2">"href"</span><span class="p">)</span><span class="w">
+
+</span><span class="n">lap_chart_link</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">paste0</span><span class="p">(</span><span class="n">link_fia</span><span class="p">,</span><span class="w"> </span><span class="n">href2</span><span class="p">)</span><span class="w">
+</span><span class="n">lap_chart_link</span><span class="w">
+</span></code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## [1] "https://fiaresultsandstatistics.motorsportstats.com/results/1950-british-grand-prix/session-facts/4817f4b9-6d84-4ea2-9c5b-ff9dcff6f2e7?fact=LapChart"
+</code></pre></div></div>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">read_html</span><span class="p">(</span><span class="n">lap_chart_link</span><span class="p">)</span><span class="w"> </span><span class="o">|&gt;</span><span class="w"> 
+  </span><span class="n">html_table</span><span class="p">()</span><span class="w">
+</span></code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## [[1]]
+## # A tibble: 71 × 1
+##    Pos. 
+##    &lt;chr&gt;
+##  1 Grid 
+##  2 Lap 1
+##  3 Lap 2
+##  4 Lap 3
+##  5 Lap 4
+##  6 Lap 5
+##  7 Lap 6
+##  8 Lap 7
+##  9 Lap 8
+## 10 Lap 9
+## # ℹ 61 more rows
+</code></pre></div></div>
+
+<p>If we go to the site we can see that there’s a lap by lap positions
+table, but this can’t be retrieved using the <code class="language-plaintext highlighter-rouge">html_table</code> function, so
+we will have to go a little deeper into the html code. Using inspect
+mode in the web browser we see that the elements of the chart are under
+div nodes with a specif class:</p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">lap_chart_page</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">read_html</span><span class="p">(</span><span class="n">lap_chart_link</span><span class="p">)</span><span class="w"> 
+
+</span><span class="n">div_nodes</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">lap_chart_page</span><span class="w"> </span><span class="o">|&gt;</span><span class="w"> 
+  </span><span class="n">html_nodes</span><span class="p">(</span><span class="n">xpath</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"//div[@class='_1BvfV']"</span><span class="p">)</span><span class="w">
+
+</span><span class="n">div_nodes</span><span class="w">  
+</span></code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## {xml_nodeset (1491)}
+##  [1] &lt;div class="_1BvfV"&gt;2&lt;/div&gt;\n
+##  [2] &lt;div class="_1BvfV"&gt;2&lt;/div&gt;\n
+##  [3] &lt;div class="_1BvfV"&gt;2&lt;/div&gt;\n
+##  [4] &lt;div class="_1BvfV"&gt;2&lt;/div&gt;\n
+##  [5] &lt;div class="_1BvfV"&gt;2&lt;/div&gt;\n
+##  [6] &lt;div class="_1BvfV"&gt;2&lt;/div&gt;\n
+##  [7] &lt;div class="_1BvfV"&gt;2&lt;/div&gt;\n
+##  [8] &lt;div class="_1BvfV"&gt;2&lt;/div&gt;\n
+##  [9] &lt;div class="_1BvfV"&gt;2&lt;/div&gt;\n
+## [10] &lt;div class="_1BvfV"&gt;2&lt;/div&gt;\n
+## [11] &lt;div class="_1BvfV"&gt;3&lt;/div&gt;\n
+## [12] &lt;div class="_1BvfV"&gt;3&lt;/div&gt;\n
+## [13] &lt;div class="_1BvfV"&gt;3&lt;/div&gt;\n
+## [14] &lt;div class="_1BvfV"&gt;3&lt;/div&gt;\n
+## [15] &lt;div class="_1BvfV"&gt;3&lt;/div&gt;\n
+## [16] &lt;div class="_1BvfV"&gt;1&lt;/div&gt;\n
+## [17] &lt;div class="_1BvfV"&gt;2&lt;/div&gt;\n
+## [18] &lt;div class="_1BvfV"&gt;2&lt;/div&gt;\n
+## [19] &lt;div class="_1BvfV"&gt;2&lt;/div&gt;\n
+## [20] &lt;div class="_1BvfV"&gt;2&lt;/div&gt;\n
+## ...
+</code></pre></div></div>
+
+<p>If this was a regular square chart, we could just use the <code class="language-plaintext highlighter-rouge">html_text</code>
+function to retrieve an string-type array of the text inside the div
+nodes and then convert it to matrix; however, if we take a look at the
+chart on the site we can see that the chart has an irregular form since
+some drivers retire from the race, so the number of columns (positions
+in the race) is constantly shrinking. This leaves a lot empty cells in
+the table, i.e div nodes with no text attribute, therefore they can’t be
+retrieve with the <code class="language-plaintext highlighter-rouge">html_text</code> function.<br />
+To work around this issue we will have to consider each div node as a
+character variable, from the above output we can see that all nodes
+follow the same pattern. We will use the <code class="language-plaintext highlighter-rouge">regexpr</code> function to extract
+the values between <code class="language-plaintext highlighter-rouge">&lt;div&gt;</code> and <code class="language-plaintext highlighter-rouge">&lt;\div&gt;</code>, if there’s nothing between
+them, we can just store a space.</p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">div_char</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">as.character</span><span class="p">(</span><span class="n">div_nodes</span><span class="p">)</span><span class="w">
+</span><span class="n">my_numbers</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">character</span><span class="p">(</span><span class="nf">length</span><span class="p">(</span><span class="n">div_char</span><span class="p">))</span><span class="w">
+
+</span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="n">k</span><span class="w"> </span><span class="k">in</span><span class="w"> </span><span class="nf">seq_along</span><span class="p">(</span><span class="n">div_char</span><span class="p">)){</span><span class="w">
+  </span><span class="n">match</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">regexpr</span><span class="p">(</span><span class="s2">"(?&lt;=&lt;div class=\"_1BvfV\"&gt;)\\d*(?=&lt;/div&gt;\\n)"</span><span class="p">,</span><span class="w"> </span><span class="n">div_char</span><span class="p">[</span><span class="n">k</span><span class="p">],</span><span class="w"> </span><span class="n">perl</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">TRUE</span><span class="p">)</span><span class="w">
+    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">match</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="m">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="c1"># If there's something there store it in the vector</span><span class="w">
+      </span><span class="n">my_numbers</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">substr</span><span class="p">(</span><span class="n">div_char</span><span class="p">[</span><span class="n">k</span><span class="p">],</span><span class="w"> </span><span class="n">match</span><span class="p">,</span><span class="w"> </span><span class="n">match</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="nf">attr</span><span class="p">(</span><span class="n">match</span><span class="p">,</span><span class="w"> </span><span class="s2">"match.length"</span><span class="p">)</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="m">1</span><span class="p">)</span><span class="w">
+    </span><span class="p">}</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="c1"># If there isn't anything there store an empty value</span><span class="w">
+      </span><span class="n">my_numbers</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="s2">" "</span><span class="w">
+    </span><span class="p">}</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span><span class="n">head</span><span class="p">(</span><span class="n">my_numbers</span><span class="p">,</span><span class="w"> </span><span class="m">20</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>##  [1] "2" "2" "2" "2" "2" "2" "2" "2" "2" "2" "3" "3" "3" "3" "3" "1" "2" "2" "2"
+## [20] "2"
+</code></pre></div></div>
+
+<p>The next step is to build a tibble from this array, for that we need to
+retrieve the number who started the race, which is the same as the
+number of columns of our chart. There we use the inspect mode again to
+retrieve the div class in which the column names are stored. We extract
+the text under these nodes, and pull the last value.</p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">total_drivers</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">read_html</span><span class="p">(</span><span class="n">lap_chart_link</span><span class="p">)</span><span class="w"> </span><span class="o">|&gt;</span><span class="w"> 
+      </span><span class="n">html_nodes</span><span class="p">(</span><span class="n">xpath</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"//div[@class='_3DVzL']"</span><span class="p">)</span><span class="w"> </span><span class="o">|&gt;</span><span class="w"> 
+      </span><span class="n">html_text</span><span class="p">()</span><span class="w"> </span><span class="o">|&gt;</span><span class="w"> </span><span class="n">tail</span><span class="p">(</span><span class="m">1</span><span class="p">)</span><span class="w"> </span><span class="o">|&gt;</span><span class="w"> </span><span class="nf">as.numeric</span><span class="p">()</span><span class="w">
+</span><span class="c1"># Make the character vector a matrix of total_drivers columns, just realize that not all charts </span><span class="w">
+</span><span class="n">lap_chart</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">as_tibble</span><span class="p">(</span><span class="n">matrix</span><span class="p">(</span><span class="n">my_numbers</span><span class="p">,</span><span class="w"> </span><span class="n">ncol</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">total_drivers</span><span class="p">))</span><span class="w"> 
+
+</span><span class="n">lap_chart</span><span class="w">
+</span></code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## # A tibble: 71 × 21
+##    V1    V2    V3    V4    V5    V6    V7    V8    V9    V10   V11   V12   V13  
+##    &lt;chr&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt;
+##  1 2     3     1     4     21    14    17    20    15    19    8     12    16   
+##  2 2     3     1     4     21    20    17    14    15    16    12    11    6    
+##  3 2     3     1     4     21    20    17    14    15    16    12    11    6    
+##  4 2     3     1     4     21    17    20    14    15    16    12    11    6    
+##  5 2     3     1     4     21    17    20    14    15    16    12    11    6    
+##  6 2     3     1     4     21    17    20    14    15    16    12    11    6    
+##  7 2     3     1     4     21    17    20    14    15    16    12    11    6    
+##  8 2     3     1     4     21    17    20    14    15    16    12    11    6    
+##  9 2     3     1     4     21    17    20    14    15    16    12    11    6    
+## 10 2     3     1     4     21    20    14    15    16    12    11    6     5    
+## # ℹ 61 more rows
+## # ℹ 8 more variables: V14 &lt;chr&gt;, V15 &lt;chr&gt;, V16 &lt;chr&gt;, V17 &lt;chr&gt;, V18 &lt;chr&gt;,
+## #   V19 &lt;chr&gt;, V20 &lt;chr&gt;, V21 &lt;chr&gt;
+</code></pre></div></div>
+
+<p>Thank you for reading this webscrapping exercise, hope you find it
+useful. If you want to see the full code and subsequent analysis check
+out my github repo <a href="https://github.com/abraham-mv/formula-1">https://github.com/abraham-mv/formula-1</a>.</p>
+:ET
