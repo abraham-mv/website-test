@@ -1,4 +1,4 @@
-I"2+<h2 id="data">Data</h2>
+I";+<h2 id="data">Data</h2>
 <p>In this post we will build and evaluate two bayesian models to predict the probability of a driver finishing in the top 5 of a given race. The data was scrapped from the FIA’s website, check out my post LINK HERE, for more information on webscrapping. The raw data was later transformed using another script which you can find in my github repo LINK HERE. Specifically the following modifications were made:</p>
 <ol>
   <li>The Indy-500 race was dropped since most regular F1 drivers didn’t participated in it.</li>
@@ -19,13 +19,9 @@
 </span><span class="n">library</span><span class="p">(</span><span class="n">viridis</span><span class="p">)</span><span class="w">
 </span><span class="n">library</span><span class="p">(</span><span class="n">rstan</span><span class="p">)</span><span class="w">
 </span></code></pre></div></div>
-
 <p>Before start fitting any models we need to load the data.</p>
-<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="w">
-</span><span class="n">data_model</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">read.csv</span><span class="p">(</span><span class="s2">"https://raw.githubusercontent.com/abraham-mv/formula-1/main/data/data_for_model.csv"</span><span class="p">)</span><span class="w"> </span><span class="o">|&gt;</span><span class="w"> </span><span class="n">select</span><span class="p">(</span><span class="o">-</span><span class="n">X</span><span class="p">)</span><span class="w">
-
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">data_model</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">read.csv</span><span class="p">(</span><span class="s2">"https://raw.githubusercontent.com/abraham-mv/formula-1/main/data/data_for_model.csv"</span><span class="p">)</span><span class="w"> </span><span class="o">|&gt;</span><span class="w"> </span><span class="n">select</span><span class="p">(</span><span class="o">-</span><span class="n">X</span><span class="p">)</span><span class="w">
 </span></code></pre></div></div>
-
 <p>In Formula 1, the drivers’ ability isn’t the most important factor on where will they finish a race, the machinery underneeth them is. That being said let’s look at proportions of race positions by engine manufacturer.</p>
 <div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">data_model</span><span class="w"> </span><span class="o">|&gt;</span><span class="w"> 
 </span><span class="n">mutate</span><span class="p">(</span><span class="n">engine_index</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">factor</span><span class="p">(</span><span class="n">engine_index</span><span class="p">),</span><span class="w">
@@ -48,14 +44,17 @@
 
 <h2 id="candidate-models">Candidate models</h2>
 <p>Given that the outcome variable is binary, we will fit a Bayesian logistic regression model (fixed effects). Also, based on the EDA, it might be a good idea to model some variables hierarchically (i.e mixed effects model).
-The first Bayesian logistic regression is described by the following equation:
-\(\begin{aligned}
+The first Bayesian logistic regression is described by the following equation:</p>
+
+\[\begin{aligned}
 y_i | \theta_i &amp;\sim \text{Bernoulli}(\theta_i) \\
 \text{logit}(\theta_i) &amp;= \beta_0 + \beta_1x_{\text{quali-pos}} + \beta_2x_{\text{avg-speed}} +  x^\top_{\text{engine}}\boldsymbol{\beta_3} + \beta_4x_{\text{champ-points}} \\
 \beta_0,\dots,\beta_4&amp;\sim N(0,1)
-\end{aligned}\)
-For the mixed effects model, we will model the drivers, teams and engine manufacturers hierarchically. 
-\(\begin{aligned}
+\end{aligned}\]
+
+<p>For the mixed effects model, we will model the drivers, teams and engine manufacturers hierarchically.</p>
+
+<p>\(\begin{aligned}
 y_i | \theta_i &amp;\sim \text{Bernoulli}(\theta_i) \\
 \text{logit}(\theta_i) &amp;= \alpha_0 + \alpha^{\text{driver}}_{d[i]}x_{\text{quali-pos}} + 
                           \alpha^{\text{team}}_{t[i]} + \alpha_{e[i]}^{\text{engine}}  \\
@@ -194,7 +193,9 @@ Here we have two variable intercept corresponding the team and engine, and a coe
 </span><span class="n">simple_mod</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">stan</span><span class="p">(</span><span class="n">data</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">stan_data</span><span class="p">,</span><span class="w"> </span><span class="n">file</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">here</span><span class="p">(</span><span class="s2">"model1.stan"</span><span class="p">),</span><span class="w">
                    </span><span class="n">chains</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">4</span><span class="p">,</span><span class="w"> </span><span class="n">iter</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">1000</span><span class="p">,</span><span class="w"> </span><span class="n">cores</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">2</span><span class="p">)</span><span class="w">
 </span></code></pre></div></div>
-<p>We can analyzed the sampling behavior of the model using traceplots and pair plots. In figure 8 below we can see that the chains are mixing correctly for all coefficients. Pairs plots were also analyzed (see appendix) and no strange behavior was found.</p>
+<p>We can analyzed the sampling behavior of the model using traceplots and pair plots. In the figure below we can see that the chains are mixing correctly for all coefficients.</p>
+
+<p><img src="/img/bayesian_f1/traceplots1.png" title="\Traceplots for model 1" width="100%" /></p>
 
 <p>The estimated mean coefficients for each variable are shown below in the odds scale, with their respective 95% CI’s (credible intervals). We can see that the qualifying position, which is also the starting position for the race, has a very significant impact in the odds of scoring points. The lower the starting position the higher the odds of scoring points, which makes sense. For the engine variable the model is taking Alfa Romeo’s engine as a baseline. Most engine manufacturers have negative mean estimated coefficients, however, their estimated errors are very large and include 1. We can see that a driver with a Ferrari engine has almost twice the odds of scoring points than one with an Alfa Romeo engine. This is surprising as many smaller teams used Ferrari power units, however, Scuderia Ferrari as a team had highly dominant years in this time period. We can see that the current WDC points had little to no impact in the odds of scoring points in a given race, this might be due to the variability of championship fights from year to year, in some years one driver is very dominant so he will have a lot of points accumulated, while in others the field is much closer togther, resulting in all drivers having less points.</p>
 <div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">colnames</span><span class="p">(</span><span class="n">covariates</span><span class="p">)[</span><span class="m">1</span><span class="p">]</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="s2">"Intercept"</span><span class="w"> 
@@ -208,7 +209,7 @@ Here we have two variable intercept corresponding the team and engine, and a coe
   </span><span class="n">xlab</span><span class="p">(</span><span class="s2">"Mean coefficient estimates"</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">ylab</span><span class="p">(</span><span class="s2">""</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">theme_bw</span><span class="p">(</span><span class="n">base_size</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">12</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> 
   </span><span class="n">ggtitle</span><span class="p">(</span><span class="s2">"Estimated coefficients from the fixed effects model"</span><span class="p">)</span><span class="w">
 </span></code></pre></div></div>
-<p><img src="/img/wave-equation/hook-wave.png" title="\Large Weights-and-strings" width="100%" /></p>
+<p><img src="/img/bayesian_f1/coefficients.png" title="Coefficients with 95% CI" width="100%" /></p>
 
 <h2 id="hierarchical-model">Hierarchical model</h2>
 <div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">n_total</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">length</span><span class="p">(</span><span class="n">data_model</span><span class="p">[,</span><span class="m">1</span><span class="p">])</span><span class="w">
