@@ -111,7 +111,7 @@ total_drivers <- read_html(lap_chart_link) |>
       html_nodes(xpath = "//div[@class='_3DVzL']") |> 
       html_text() |> tail(1) |> as.numeric()
 # Make the character vector a matrix of total_drivers columns, just realize that not all charts 
-lap_chart <- as_tibble(matrix(my_numbers, ncol = total_drivers)) 
+lap_chart <- as_tibble(matrix(my_numbers, ncol = total_drivers) ) 
 lap_chart
 ```
 Thank you for reading this webscrapping exercise, hope you find it useful. If you want to see the full code and subsequent analysis check out my github repo https://github.com/abraham-mv/formula-1.

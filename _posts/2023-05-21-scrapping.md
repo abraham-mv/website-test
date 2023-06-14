@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "The Origins of Formula 1: (Part 1) Webscrapping"
-subtitle: "Using the R to extract 1950s Formula 1 data"
+subtitle: "Using R to extract 1950s Formula 1 data"
 background: '/img/wave-equation/waves-background.jpg'
 ---
 
