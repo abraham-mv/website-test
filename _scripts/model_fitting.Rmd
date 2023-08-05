@@ -94,7 +94,7 @@ Here we have two variable intercept corresponding the team and engine, and a coe
 
 ## Running the models
 To run the models we will use [`stan`](https://mc-stan.org/docs/stan-users-guide/index.html). Below is the code for the first one. Instead of specifying each feature individually, we can give stan a covariate matrix, and let it now that the beta coefficients are in vector format.
-```{stan}
+```{stan }
 data {
   int<lower=0> N; // Number of observations
   int<lower=0> K; // Number of features
