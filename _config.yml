@@ -20,7 +20,7 @@ lang: en
 
 title: Abraham Morales # the main title
 
-tagline: A text-focused Jekyll theme # it will display as the sub-title
+tagline: Data Scientist. MSc Statistics from University of Toronto. # it will display as the sub-title
 
 description: >- # used by seo meta and the atom feed
   Data Scientist. MSc Statistics from University of Toronto.
@@ -38,7 +38,7 @@ social:
   # Change to your full name.
   # It will be displayed as the default author of the posts and the copyright owner in the Footer
   name: Abraham Morales
-  email:  # change to your email address
+  email: jose_abraham2000@hotmail.com
   links:
     # The first element serves as the copyright owner's link
     - https://github.com/abraham-mv # change to your github homepage
