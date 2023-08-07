@@ -29,7 +29,7 @@ description: >- # used by seo meta and the atom feed
 url: "https://abraham-mv.github.io/"
 
 github:
-  username: https://github.com/abraham-mv # change to your github username
+  username: abraham-mv # change to your github username
 
 twitter:
   username:  # change to your twitter username
@@ -41,11 +41,10 @@ social:
   email:  # change to your email address
   links:
     # The first element serves as the copyright owner's link
-    - https://twitter.com/username # change to your twitter homepage
-    - https://github.com/username # change to your github homepage
+    - https://github.com/abraham-mv # change to your github homepage
     # Uncomment below to add more social links
     # - https://www.facebook.com/username
-    # - https://www.linkedin.com/in/username
+    - https://www.linkedin.com/in/abraham-morales-722050188/
 
 google_site_verification: # fill in to your verification string
 
@@ -73,7 +72,7 @@ theme_mode: #[light|dark]
 # will be added to all image (site avatar & posts' images) paths starting with '/'
 #
 # e.g. 'https://cdn.com'
-img_cdn: "https://chirpy-img.netlify.app"
+img_cdn: ""
 
 # the avatar on sidebar, support local or CORS resources
 avatar: "https://avatars.githubusercontent.com/u/83782126?s=400&u=65ed27078f59fba54f856c7770f37bdabc6d48c4&v=4"
